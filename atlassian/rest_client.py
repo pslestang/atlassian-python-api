@@ -1,5 +1,6 @@
 # coding=utf-8
 import logging
+import http.cookiejar
 from json import dumps
 
 import requests
@@ -47,6 +48,7 @@ class AtlassianRestAPI(object):
         oauth=None,
         oauth2=None,
         cookies=None,
+        cookie_file=None,
         advanced_mode=None,
         kerberos=None,
         cloud=False,
@@ -60,6 +62,7 @@ class AtlassianRestAPI(object):
         self.api_root = api_root
         self.api_version = api_version
         self.cookies = cookies
+        self.cookie_file = cookie_file
         self.advanced_mode = advanced_mode
         self.cloud = cloud
         self.proxies = proxies
@@ -77,6 +80,11 @@ class AtlassianRestAPI(object):
             self._create_kerberos_session(kerberos)
         elif cookies is not None:
             self._session.cookies.update(cookies)
+        elif cookie_file is not None:
+            cookiejar = http.cookiejar.MozillaCookieJar(cookie_file)
+            cookiejar.load(ignore_expires=True)
+            cookiejar_to_dict = requests.utils.dict_from_cookiejar(cookiejar)
+            self._session.cookies.update(cookiejar_to_dict)
 
     def __enter__(self):
         return self
